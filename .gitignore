@@ -130,3 +130,10 @@ dmypy.json
 
 # dumb batch script I wrote
 upload.bat
+
+# more batch scripts
+r2h.bat
+r2h.py
+
+# testing garbanzo
+README.html

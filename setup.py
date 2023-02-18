@@ -20,7 +20,7 @@ setup(
     license="GNU GPLv3",
     packages=["crutil"],
     install_requires=[
-
+        "dill>=0.3.0"
     ],
     python_requires=">=3.6",
     long_description=readme,
