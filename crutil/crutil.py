@@ -5,6 +5,8 @@ import pprint
 import sys
 import traceback
 import os
+import lzma
+import base64
 
 try:
     import dill as pickle
@@ -234,3 +236,29 @@ class suppress:
 
         sys.stderr.close()
         sys.stderr = self.old_stderr
+
+def blob(inf, outf="blob.py"):
+    """Blobify files into a python file for easy pyinstallering and stuff"""
+    with open(inf, "rb") as f:
+        with open(outf, "w") as g:
+            g.write(
+                "import lzma,base64;data=lzma.decompress(base64.a85decode(\""
+                + base64.a85encode(
+                    lzma.compress(
+                        f.read()
+                    )
+                ).decode(
+                    "utf"
+                ).replace(
+                    "\\",
+                    "{"
+                ).replace(
+                    "\"",
+                    "}"
+                )
+                + "\".replace(\"{\", \"\\\\\").replace(\"}\", \"\\\"\").encode(\"utf\")))\n"
+                + """def unblob(outf):
+\tglobal data
+\twith open(outf, "wb") as f:
+\t\tf.write(data)"""
+            )

@@ -36,4 +36,7 @@ Docs...?
   
 - crutil.find_args(func) ; Tries, *tries*, to return a list of all arguments of function.
 
+- crutil.blob(in, out) ; Takes a binary input file and converts it into a python script so that when said script is imported and the .unblob(out) method is run, it unblobs it's data to out.
+  Can be used for easy pyinstallering.
+
 - crutil.test() ; idfk figure it out
