@@ -7,6 +7,7 @@ import traceback
 import os
 import lzma
 import base64
+import gc as pygc
 
 try:
     import dill as pickle
@@ -262,3 +263,19 @@ def blob(inf, outf="blob.py"):
 \twith open(outf, "wb") as f:
 \t\tf.write(data)"""
             )
+
+def gc():
+    """Nukes every variable in scope excluding ones beginning with underscores."""
+    import inspect
+    import gc
+
+    frame = inspect.currentframe().f_back
+    garbage = []
+    for var in frame.f_globals:
+        if (not var.startswith("_")) and (not var == "crutil"):
+            garbage.append(var)
+
+    for var in garbage:
+        del frame.f_globals[var]
+
+    pygc.collect()
