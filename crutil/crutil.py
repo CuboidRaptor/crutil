@@ -39,7 +39,13 @@ def ll_import(imports, level="leaf"):
                 )[0]
             ):
                 if len(atsplit) > 1:
-                    frame.f_globals[atsplit[~0]] = lazy_import.lazy_callable(smod[0].replace("@", "."))
+                    if len(smod) > 1:
+                        mname = smod[~0]
+
+                    else:
+                        mname = atsplit[~0]
+
+                    frame.f_globals[mname] = lazy_import.lazy_callable(smod[0].replace("@", "."))
 
                 else:
                     frame.f_globals[smod[~0]] = lazy_import.lazy_module(smod[0], level=level)
@@ -237,23 +243,11 @@ class defer(object):
             sys.stderr.write(self.tb.format_exc())
             err = True
 
-        for i in range(0, len(temp)):
+        for i in range(0, len(self.exits)):
             try:
-                args, kwargs, curf = self.args[i], self.kwargs[i], temp[i]
+                args, kwargs, curf = self.args[i], self.kwargs[i], self.exits[i]
 
-                if args:
-                    if kwargs:
-                        curf(*args, **kwargs)
-
-                    else:
-                        curf(*args)
-
-                else:
-                    if kwargs:
-                        curf(**kwargs)
-
-                    else:
-                        curf()
+                curf(*args, **kwargs)
 
             except:
                 sys.stderr.write(self.tb.format_exc())
