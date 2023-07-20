@@ -1,23 +1,68 @@
+"""
+Crutil is a pile of steamy lukewarm garbage that gives you
+random functions.
+"""
+
+from .metadata import * # get dem numbers
+__all__ = [
+    "ll_import",
+    "subscriber",
+    "pubsub",
+    "find_args",
+    "recursion",
+    "defer",
+    "suppress",
+    "blob",
+    "gc"
+]
+
 # imports?
+import lazy_import
+import importlib
 import inspect
-import hashlib
-import pprint
-import sys
-import traceback
-import os
-import lzma
-import base64
-import gc as pygc
 
-try:
-    import dill as pickle
+def ll_import(imports, level="leaf"):
+    """Lazy import off a list. Semi-colon allows importing as, and slash allows try excepts. At sign is for from importing (e.g ["numpy;np", "ujson;json/json", "random@randint;r_int"])"""
 
-except ModuleNotFoundError:
-    import pickle
+    frame = inspect.currentframe().f_back
 
-def test():
-    """just needed to test that the program is running"""
-    print("Hello... World?")
+    if isinstance(imports, str):
+        imports = [imports]
+
+    for mod in imports:
+        for i, attempt in enumerate(pmod := mod.split("/")):
+            smod = attempt.split(";")
+
+            if importlib.util.find_spec(
+                (
+                    atsplit := smod[0].split("@")
+                )[0]
+            ):
+                if len(atsplit) > 1:
+                    frame.f_globals[atsplit[~0]] = lazy_import.lazy_callable(smod[0].replace("@", "."))
+
+                else:
+                    frame.f_globals[smod[~0]] = lazy_import.lazy_module(smod[0], level=level)
+
+                break
+
+            elif i >= (len(pmod) - 1):
+                raise ImportError(f"Could not import any of {pmod}")
+
+            else:
+                continue
+
+ll_import([
+    "hashlib",
+    "pprint",
+    "traceback",
+    "os",
+    "lzma",
+    "base64",
+    "pkgutil",
+    "sys",
+    "dill;pickle/pickle"
+])
 
 class subscriber:
     """Subscriber object for pubsub"""
@@ -129,7 +174,7 @@ class recursion:
     def __exit__(self, type, value, tb):
         sys.setrecursionlimit(self.old_limit)
 
-class Defer(object):
+class defer(object):
     """Defers functions to the end of a function/context manager."""
     def __init__(self, f=None):
         self.tb = traceback
@@ -151,9 +196,9 @@ class Defer(object):
 
         def ddefer(f, *args, **kwargs):
             if callable(f):
-                exits.append(f)
-                aargs.append(args)
-                akwargs.append(kwargs)
+                exits.insert(0, f)
+                aargs.insert(0, args)
+                akwargs.insert(0, kwargs)
 
             else:
                 raise TypeError(f"Object {f} cannot be deferred.")
@@ -177,9 +222,9 @@ class Defer(object):
 
     def fdefer(self, f, *args, **kwargs):
         if callable(f):
-            self.exits.append(f)
-            self.args.append(args)
-            self.kwargs.append(kwargs)
+            self.exits.insert(0, f)
+            self.args.insert(0, args)
+            self.kwargs.insert(0, kwargs)
 
         else:
             raise TypeError(f"Object {f} cannot be deferred.")
@@ -192,7 +237,6 @@ class Defer(object):
             sys.stderr.write(self.tb.format_exc())
             err = True
 
-        temp = self.exits[::-1]
         for i in range(0, len(temp)):
             try:
                 args, kwargs, curf = self.args[i], self.kwargs[i], temp[i]
@@ -266,16 +310,15 @@ def blob(inf, outf="blob.py"):
 
 def gc():
     """Nukes every variable in scope excluding ones beginning with underscores."""
-    import inspect
-    import gc
 
     frame = inspect.currentframe().f_back
+
     garbage = []
     for var in frame.f_globals:
-        if (not var.startswith("_")) and (not var == "crutil"):
+        if (not var.startswith("_")) and (not var in ["crutil", "gc"]):
             garbage.append(var)
 
     for var in garbage:
         del frame.f_globals[var]
 
-    pygc.collect()
+    __import__("gc").collect()
