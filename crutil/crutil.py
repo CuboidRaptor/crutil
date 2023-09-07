@@ -4,24 +4,13 @@ random functions.
 """
 
 from .metadata import * # get dem numbers
-__all__ = [
-    "ll_import",
-    "subscriber",
-    "pubsub",
-    "find_args",
-    "recursion",
-    "defer",
-    "suppress",
-    "blob",
-    "gc"
-]
 
 # imports?
-import lazy_import
+import lazy_import as l_import
 import importlib
 import inspect
 
-def ll_import(imports, level="leaf"):
+def lazy_import(imports, level="leaf"):
     """Lazy import off a list. Semi-colon allows importing as, and slash allows try excepts. At sign is for from importing (e.g ["numpy;np", "ujson;json/json", "random@randint;r_int"])"""
 
     frame = inspect.currentframe().f_back
@@ -45,10 +34,10 @@ def ll_import(imports, level="leaf"):
                     else:
                         mname = atsplit[~0]
 
-                    frame.f_globals[mname] = lazy_import.lazy_callable(smod[0].replace("@", "."))
+                    frame.f_globals[mname] = l_import.lazy_callable(smod[0].replace("@", "."))
 
                 else:
-                    frame.f_globals[smod[~0]] = lazy_import.lazy_module(smod[0], level=level)
+                    frame.f_globals[smod[~0]] = l_import.lazy_module(smod[0], level=level)
 
                 break
 
@@ -58,7 +47,7 @@ def ll_import(imports, level="leaf"):
             else:
                 continue
 
-ll_import([
+lazy_import([
     "hashlib",
     "pprint",
     "traceback",
@@ -142,6 +131,12 @@ class pubsub:
         """PPrints the cache tree"""
         pprint.pprint(self.cache, indent=4)
 
+def cfor(start, test, update):
+    """C-style for loops using lambdas"""
+    while test(start):
+        yield start
+        start = update(start)
+
 def find_args(func):
     """Attempt to list all arguments of a callable function"""
     try:
@@ -202,9 +197,9 @@ class defer(object):
 
         def ddefer(f, *args, **kwargs):
             if callable(f):
-                exits.insert(0, f)
-                aargs.insert(0, args)
-                akwargs.insert(0, kwargs)
+                exits.append(f)
+                aargs.append(args)
+                akwargs.append(kwargs)
 
             else:
                 raise TypeError(f"Object {f} cannot be deferred.")
@@ -217,7 +212,7 @@ class defer(object):
            sys.stderr.write(self.tb.format_exc())
            err = True
 
-        for i in range(0, len(exits)):
+        for i in range(len(exits) - 1, -1, -1):
             exits[i](*aargs[i], **(akwargs[i]))
 
         if err:
@@ -228,9 +223,9 @@ class defer(object):
 
     def fdefer(self, f, *args, **kwargs):
         if callable(f):
-            self.exits.insert(0, f)
-            self.args.insert(0, args)
-            self.kwargs.insert(0, kwargs)
+            self.exits.append(f)
+            self.args.append(args)
+            self.kwargs.append(kwargs)
 
         else:
             raise TypeError(f"Object {f} cannot be deferred.")
@@ -243,7 +238,7 @@ class defer(object):
             sys.stderr.write(self.tb.format_exc())
             err = True
 
-        for i in range(0, len(self.exits)):
+        for i in range(len(exits) - 1, -1, -1):
             try:
                 args, kwargs, curf = self.args[i], self.kwargs[i], self.exits[i]
 

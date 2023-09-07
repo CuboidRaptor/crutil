@@ -43,5 +43,7 @@ Docs...?
 
 - crutil.gc() ; Nuclear bomb every variable in namespace, absolutely the most performant GC out there.
 
-- crutil.ll_import() ; Lazy import, you can do it in bulk with lists, and use semicolons as :code:`import as` and slashes are :code:`try: import except; import`
+- crutil.cfor() ; C-style for loops
+
+- crutil.lazy_import() ; Lazy import, you can do it in bulk with lists, and use semicolons as :code:`import as` and slashes are :code:`try: import except; import`
   For example, :code:`"numpy;np"` imports numpy as np, and :code:`ujson;json/json` tries to import ujson as json, and if ujson doesn't exist on your python installation, it imports json instead.
