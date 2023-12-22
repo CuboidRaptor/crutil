@@ -311,3 +311,20 @@ def gc():
         del frame.f_globals[var]
 
     __import__("gc").collect()
+
+def nh_cache(f):
+    """Self made implementation of functools.cache() that allows non-hashable objects with some performance losses"""
+    argcache = []
+    resultcache = []
+
+    def wrapper(*args, **kwargs):
+        try:
+            return resultcache[argcache.index((args, kwargs))]
+
+        except ValueError:
+            result = f(*args, **kwargs)
+            argcache.append((args, kwargs))
+            resultcache.append(result)
+            return result
+
+    return wrapper
