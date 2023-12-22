@@ -54,9 +54,10 @@ lazy_import([
     "os",
     "lzma",
     "base64",
-    "pkgutil",
     "sys",
-    "dill;pickle/pickle"
+    "functools",
+    "dill;pickle/pickle",
+    "collections"
 ])
 
 class subscriber:
@@ -312,19 +313,62 @@ def gc():
 
     __import__("gc").collect()
 
-def nh_cache(f):
-    """Self made implementation of functools.cache() that allows non-hashable objects with some performance losses"""
-    argcache = []
-    resultcache = []
+def nh_cache(maxsize=128, usedeque=True, copy=False):
+    """Self made implementation of functools.cache() that allows non-hashable objects with some performance losses. Typing is always unique. FIFO."""
+    def generator(f):
+        if usedeque:
+            argcache, resultcache = collections.deque([]), collections.deque([])
 
-    def wrapper(*args, **kwargs):
-        try:
-            return resultcache[argcache.index((args, kwargs))]
+        else:
+            argcache, resultcache = [], []
 
-        except ValueError:
-            result = f(*args, **kwargs)
-            argcache.append((args, kwargs))
-            resultcache.append(result)
-            return result
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                cached_result = resultcache[argcache.index((args, kwargs))]
 
-    return wrapper
+                if copy:
+                    return deepcopy(cached_result)
+
+                return cached_result
+
+            except ValueError:
+                result = f(*args, **kwargs)
+                argcache.append((args, kwargs))
+                resultcache.append(result)
+
+                if len(resultcache) > maxsize:
+                    if usedeque:
+                        argcache.popleft()
+                        resultcache.popleft()
+
+                    else:
+                        argcache.pop(0)
+                        resultcache.pop(0)
+
+                return result
+
+        return wrapper
+
+    return generator
+
+def lru_cache(maxsize=128, typed=False, copy=False):
+    # functools.lru_cache, but can deepcopy
+    if not copy:
+        return functools.lru_cache(maxsize, typed)
+
+    else:
+        def generator(f):
+            cached_func = functools.lru_cache(maxsize, typed)(f)
+
+            @functools.wraps(f)
+            def wrapper(*args, **kwargs):
+                return deepcopy(cached_func(*args, **kwargs))
+
+            return wrapper
+
+        return generator
+
+def deepcopy(obj):
+    # More performant than copy.deepcopy
+    return pickle.loads(pickle.dumps(obj))
