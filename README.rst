@@ -47,3 +47,7 @@ Docs...?
 
 - crutil.lazy_import() ; Lazy import, you can do it in bulk with lists, and use semicolons as :code:`import as` and slashes are :code:`try: import except; import`
   For example, :code:`"numpy;np"` imports numpy as np, and :code:`ujson;json/json` tries to import ujson as json, and if ujson doesn't exist on your python installation, it imports json instead.
+  
+- crutil.nh_cache() ; FIFO cache that supports non-hashable objects and can deepcopy return values if needed.
+
+- crutil.lru_cache() ; Extension of functools.lru_cache that supports deepcopying results with `copy` arg
