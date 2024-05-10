@@ -4,6 +4,7 @@ Crutil
 
 This is a random library I made with random garbage I made that occasionally can help with programming.
 It's just the must random code crammed into one poopy doopy thing maintained by a dumbo octopus, so use this at your own risk.
+Also sorry if the docs are garbage I'm lazy ight
 
 Docs...?
 ========
@@ -51,3 +52,5 @@ Docs...?
 - crutil.nh_cache() ; FIFO cache that supports non-hashable objects and can deepcopy return values if needed.
 
 - crutil.lru_cache() ; Extension of functools.lru_cache that supports deepcopying results with `copy` arg
+
+- crutil.silence(func) ; Runs functions and prints tb + return error message and continues if error

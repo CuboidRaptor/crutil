@@ -57,7 +57,7 @@ lazy_import([
     "sys",
     "functools",
     "dill;pickle/pickle",
-    "collections"
+    "collections",
 ])
 
 class subscriber:
@@ -372,3 +372,25 @@ def lru_cache(maxsize=128, typed=False, copy=False):
 def deepcopy(obj):
     # More performant than copy.deepcopy
     return pickle.loads(pickle.dumps(obj))
+
+def _get_full_exc_name(obj):
+    module = obj.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+        return obj.__class__.__name__
+    return module + '.' + obj.__class__.__name__
+
+def silence(func):
+    # Don't kill program on error
+    try:
+        return func()
+
+    except Exception as exception:
+        print(traceback.format_exc())
+        return f"{_get_full_exc_name(exception)}: {str(exception)}"
+
+def arrfind(arr, key, v):
+    try:
+        return next(i for i in arr if (key(i) == v))
+
+    except StopIteration:
+        return None
